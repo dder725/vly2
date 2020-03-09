@@ -4,6 +4,7 @@ import React, { Component } from 'react'
 import { FormattedMessage } from 'react-intl'
 import RichTextEditor from '../Form/Input/RichTextEditor'
 import ImageUpload from '../UploadComponent/ImageUploadComponent'
+import FileUpload from '../File/FileUpload'
 
 import TagInput from '../Form/Input/TagInput'
 import OrgSelector from '../Org/OrgSelector'
@@ -90,6 +91,10 @@ class ActDetailForm extends Component {
 
   setImgUrl = value => {
     this.props.form.setFieldsValue({ imgUrl: value })
+  }
+
+  onDocumentUploaded() {
+
   }
 
   handleSubmit = e => {
@@ -228,6 +233,19 @@ class ActDetailForm extends Component {
         />
         &nbsp;
         <Tooltip title='Choose a picture that illustrates the activity, you can upload a picture or link to something on the Internet, Animated Gifs too.'>
+          <Icon type='question-circle-o' />
+        </Tooltip>
+      </span>
+    )
+    const actDocuments = (
+      <span>
+        <FormattedMessage
+          id='actDocuments'
+          defaultMessage='Documents'
+          description='activity documents label in ActDetailForm'
+        />
+        &nbsp;
+        <Tooltip title='Upload up to 5 pdf files that you would like to attach to this activity. These will be display on the activity for volunteers to read.'>
           <Icon type='question-circle-o' />
         </Tooltip>
       </span>
@@ -557,6 +575,38 @@ class ActDetailForm extends Component {
               </MediumInputContainer>
             </InputContainer>
           </FormGrid>
+          <Divider />
+
+          <FormGrid>
+            <DescriptionContainer>
+              <TitleContainer>
+                <h3>
+                  <FormattedMessage
+                    id='actDetailForm.addDocumentsSection.title'
+                    defaultMessage='Documents'
+                    description='subtitle for the documents section in act detail form'
+                  />
+                </h3>
+              </TitleContainer>
+              <p>
+                <FormattedMessage
+                  id='actDetailForm.addDocumentsSection.instructions'
+                  defaultMessage="Upload any PDF documents relativant to the activity that you would like volunteers to refer to (such as a Health and Safety pdf)"
+                  description='instructions for instructions section in actdetail form'
+                />
+              </p>
+            </DescriptionContainer>
+            <InputContainer>
+              <MediumInputContainer>
+                <Form.Item label={actDocuments}>
+                  {getFieldDecorator('actDocuments', {
+                    rules: []
+                  })(<FileUpload maxNumberOfFiles={5} allowedFileTypes={['.pdf']} onFileUploaded={this.onDocumentUploaded.bind(this)} />)}
+                </Form.Item>
+              </MediumInputContainer>
+            </InputContainer>
+          </FormGrid>
+
           <Divider />
 
           <FormGrid>
