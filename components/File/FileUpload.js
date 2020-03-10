@@ -14,6 +14,9 @@ class FileUpload extends Component {
   constructor (props) {
     super(props)
 
+    // Map the uppy file id to the s3 bucket URL (once uploaded)
+    this.fileIdToLocationUrlMap = new Map()
+
     this.uppy = Uppy({
       id: 'uppy',
       autoProceed: true,
@@ -27,38 +30,44 @@ class FileUpload extends Component {
       },
       meta: {}
     })
-    this.onUpload = this.onUpload.bind(this)
-    this.uppy.addUploader(this.onUpload)
+    this.uppy.on('file-added', this.uploadFile.bind(this))
+    this.uppy.on('file-removed', () => this.raiseFilesChanged())
   }
 
-  onUpload (fileIDs) {
-    const file = this.uppy.getFile(fileIDs[0])
+  uploadFile (event) {
     const fileReader = new window.FileReader()
 
     fileReader.onloadend = async e => {
       try {
         const response = await callApi('files', 'post', {
           data: e.currentTarget.result,
-          filename: file.name
+          filename: event.name
         })
 
-        if (this.props.onFileUploaded) {
-          this.props.onFileUploaded(response.imageUrl, response.sizeVariants)
-        }
+        this.fileIdToLocationUrlMap.set(event.id, response.location)
+        this.raiseFilesChanged()
       }
       catch (error) {
-        message.error('An error occured uploading file: ' + error.status + ' ' + error.statusText)
+        console.error(error)
+        message.error('An error occured uploading file')
       }
     }
 
-    fileReader.readAsBinaryString(file.data)
+    fileReader.readAsBinaryString(event.data)
+  }
+
+  raiseFilesChanged() {
+    if (this.props.onFilesChanged) {
+      this.props.onFilesChanged(this.uppy.getFiles().map(file => ({
+        ...file,
+        location: this.fileIdToLocationUrlMap.get(file.id)
+      })))
+    }
   }
 
   render () {
     const up = (process.env.NODE_ENV !== 'test') &&
-      <div onChange={this.handleChange}>
-        <Dashboard uppy={this.uppy} inline width='100%' height={200} proudlyDisplayPoweredByUppy={false} hideUploadButton />
-      </div>
+      <Dashboard uppy={this.uppy} inline width='100%' height={200} proudlyDisplayPoweredByUppy={false} hideUploadButton />
     return up
   }
 }
@@ -66,7 +75,7 @@ class FileUpload extends Component {
 FileUpload.PropTypes = {
   maxNumberOfFiles: PropTypes.number,
   allowedFileTypes: PropTypes.arrayOf(PropTypes.string),
-  onFileUploaded: PropTypes.func
+  onFilesChanged: PropTypes.func,
 }
 
 export default FileUpload

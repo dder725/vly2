@@ -93,8 +93,8 @@ class ActDetailForm extends Component {
     this.props.form.setFieldsValue({ imgUrl: value })
   }
 
-  onDocumentUploaded() {
-
+  onDocumentsChanged(documents) {
+    this.props.form.setFieldsValue({ documents })
   }
 
   handleSubmit = e => {
@@ -116,6 +116,10 @@ class ActDetailForm extends Component {
         act.description = values.description
         act.offerOrg = values.offerOrg && values.offerOrg.key
         act.imgUrl = values.imgUrl === '' ? undefined : values.imgUrl
+        act.documents = (values.documents || []).map(document => ({
+          filename: document.data.name,
+          location: document.location
+        }))
         act.tags = values.tags
         act.status = e.target.name === 'publish' ? 'active' : 'draft'
         // act.owner = (this.props.act.owner && this.props.op.owner._id) || this.props.me._id
@@ -599,9 +603,9 @@ class ActDetailForm extends Component {
             <InputContainer>
               <MediumInputContainer>
                 <Form.Item label={actDocuments}>
-                  {getFieldDecorator('actDocuments', {
+                  {getFieldDecorator('documents', {
                     rules: []
-                  })(<FileUpload maxNumberOfFiles={5} allowedFileTypes={['.pdf']} onFileUploaded={this.onDocumentUploaded.bind(this)} />)}
+                  })(<FileUpload maxNumberOfFiles={5} allowedFileTypes={['.pdf']} onFilesChanged={this.onDocumentsChanged.bind(this)} />)}
                 </Form.Item>
               </MediumInputContainer>
             </InputContainer>
@@ -684,6 +688,7 @@ ActDetailForm.propTypes = {
     name: PropTypes.string,
     subtitle: PropTypes.string,
     imgUrl: PropTypes.string,
+    documents: PropTypes.array,
     resource: PropTypes.string,
     volunteers: PropTypes.number,
     space: PropTypes.string,
@@ -755,6 +760,10 @@ export default Form.create({
       imgUrl: Form.createFormField({
         ...props.act.imgUrl,
         value: props.act.imgUrl
+      }),
+      documents: Form.createFormField({
+        ...props.act.documents,
+        value: props.act.documents
       }),
       time: Form.createFormField({ ...props.act.time, value: props.act.time }),
       resource: Form.createFormField({
