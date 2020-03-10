@@ -98,7 +98,7 @@ export function ActDetail ({ act, me }) {
       </OpSectionGrid>
       <Divider />
 
-      {act.documents && (
+      {act.documents && act.documents.length > 0 && (
         <>
           <OpSectionGrid>
             <div>
