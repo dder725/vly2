@@ -107,7 +107,7 @@ export function ActDetail ({ act, me }) {
             <ItemDescription>
               <ul>
                 {act.documents.map(document => (
-                  <li>
+                  <li key={document.location}>
                     <a href={document.location}>{document.filename}</a>
                   </li>
                 ))}
