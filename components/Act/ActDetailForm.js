@@ -607,7 +607,10 @@ class ActDetailForm extends Component {
                 <Form.Item label={actDocuments}>
                   {getFieldDecorator('documents', {
                     rules: []
-                  })(<FileUpload maxNumberOfFiles={5} allowedFileTypes={['.pdf']} onFilesChanged={this.onDocumentsChanged.bind(this)} />)}
+                  })(<FileUpload maxNumberOfFiles={5}
+                    allowedFileTypes={['.pdf']}
+                    files={this.props.act.documents}
+                    onFilesChanged={this.onDocumentsChanged.bind(this)} />)}
                 </Form.Item>
               </MediumInputContainer>
             </InputContainer>

@@ -14,8 +14,8 @@ class FileUpload extends Component {
   constructor (props) {
     super(props)
 
-    // Map the uppy file id to the s3 bucket URL (once uploaded)
-    this.fileIdToLocationUrlMap = new Map()
+    // Map the uppy filename to the s3 bucket URL (once uploaded)
+    this.filenameToLocationUrlMap = new Map()
 
     this.uppy = Uppy({
       id: 'uppy',
@@ -30,6 +30,20 @@ class FileUpload extends Component {
       },
       meta: {}
     })
+
+    if (props.files) {
+      for (const file of props.files) {
+        this.uppy.addFile({
+          name: file.filename,
+          data: {
+            name: file.filename
+          }
+        })
+
+        this.filenameToLocationUrlMap.set(file.filename, file.location)
+      }
+    }
+
     this.uppy.on('file-added', this.uploadFile.bind(this))
     this.uppy.on('file-removed', () => this.raiseFilesChanged())
   }
@@ -44,7 +58,7 @@ class FileUpload extends Component {
           filename: event.name
         })
 
-        this.fileIdToLocationUrlMap.set(event.id, response.location)
+        this.filenameToLocationUrlMap.set(event.name, response.location)
         this.raiseFilesChanged()
       }
       catch (error) {
@@ -60,7 +74,7 @@ class FileUpload extends Component {
     if (this.props.onFilesChanged) {
       this.props.onFilesChanged(this.uppy.getFiles().map(file => ({
         ...file,
-        location: this.fileIdToLocationUrlMap.get(file.id)
+        location: this.filenameToLocationUrlMap.get(file.name)
       })))
     }
   }
