@@ -94,7 +94,12 @@ class ActDetailForm extends Component {
   }
 
   onDocumentsChanged(documents) {
-    this.props.form.setFieldsValue({ documents })
+    this.props.form.setFieldsValue({ 
+      documents: documents.map(document => ({
+        filename: document.data.name,
+        location: document.location
+      }))
+    })
   }
 
   handleSubmit = e => {
@@ -116,10 +121,7 @@ class ActDetailForm extends Component {
         act.description = values.description
         act.offerOrg = values.offerOrg && values.offerOrg.key
         act.imgUrl = values.imgUrl === '' ? undefined : values.imgUrl
-        act.documents = (values.documents || []).map(document => ({
-          filename: document.data.name,
-          location: document.location
-        }))
+        act.documents = values.documents
         act.tags = values.tags
         act.status = e.target.name === 'publish' ? 'active' : 'draft'
         // act.owner = (this.props.act.owner && this.props.op.owner._id) || this.props.me._id
