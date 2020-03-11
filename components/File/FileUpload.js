@@ -4,15 +4,53 @@ import PropTypes from 'prop-types'
 import callApi from '../../lib/callApi'
 import '@uppy/core/dist/style.css'
 import '@uppy/dashboard/dist/style.css'
+import styled from 'styled-components'
 
 const { Dashboard } = require('@uppy/react')
 const Uppy = require('@uppy/core')
+
+const UploadingBadge = styled.div`
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: top 0.2s ease-in;
+  background: #6549aa;
+  padding: 8px 10px;
+  border-radius: 4px;
+  color: white;
+  font-size: smaller;
+  line-height: normal;
+
+  @keyframes uploading
+  {
+    from
+    {
+      top: 0;
+    }
+    to
+    {
+      top: -35px;
+    }
+  }
+
+  &[data-uploading]
+  {
+    display: block;
+    animation: uploading 0.2s forwards;
+  }
+`
+const FileUploadWrapper = styled.div`
+  position: relative;
+`
 
 class FileUpload extends Component {
   TWO_MEGABYTES = 2000000
 
   constructor (props) {
     super(props)
+
+    this.uploading = []
 
     // Map the uppy filename to the s3 bucket URL (once uploaded)
     this.filenameToLocationUrlMap = new Map()
@@ -46,6 +84,31 @@ class FileUpload extends Component {
 
     this.uppy.on('file-added', this.uploadFile.bind(this))
     this.uppy.on('file-removed', () => this.raiseFilesChanged())
+
+    this.state = {
+      uploading: false
+    }
+  }
+  
+  componentDidMount() {
+    let previousUploading = false
+    this.uploadingTimerId = window.setInterval(() => {
+      const uploading = this.uploading.length > 0 && this.uploading.find(upload => !upload.complete)
+
+      if (uploading !== previousUploading) {
+        this.setState({
+          uploading
+        })
+        previousUploading = uploading
+
+        if (this.props.onUploadingStatusChanged) {
+          this.props.onUploadingStatusChanged(uploading)
+        }
+      }
+    }, 250)
+  }
+  componentWillUnmount() {
+    window.clearInterval(this.uploadingTimerId)
   }
 
   uploadFile (event) {
@@ -53,11 +116,20 @@ class FileUpload extends Component {
 
     fileReader.onloadend = async e => {
       try {
-        const response = await callApi('files', 'post', {
+        const responsePromise = callApi('files', 'post', {
           data: e.currentTarget.result,
           filename: event.name
         })
 
+        const upload = {
+          responsePromise,
+          complete: false
+        }
+
+        this.uploading.push(upload)
+
+        const response = await responsePromise
+        upload.complete = true
         this.filenameToLocationUrlMap.set(event.name, response.location)
         this.raiseFilesChanged()
       }
@@ -81,7 +153,10 @@ class FileUpload extends Component {
 
   render () {
     const up = (process.env.NODE_ENV !== 'test') &&
-      <Dashboard uppy={this.uppy} inline width='100%' height={200} proudlyDisplayPoweredByUppy={false} hideUploadButton />
+      <FileUploadWrapper>
+        <UploadingBadge data-uploading={this.state.uploading ? true : undefined}>Uploading...</UploadingBadge>
+        <Dashboard uppy={this.uppy} inline width='100%' height={200} proudlyDisplayPoweredByUppy={false} hideUploadButton />
+      </FileUploadWrapper>
     return up
   }
 }
@@ -90,6 +165,7 @@ FileUpload.PropTypes = {
   maxNumberOfFiles: PropTypes.number,
   allowedFileTypes: PropTypes.arrayOf(PropTypes.string),
   onFilesChanged: PropTypes.func,
+  onUploadingStatusChanged: PropTypes.func
 }
 
 export default FileUpload

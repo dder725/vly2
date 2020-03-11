@@ -102,6 +102,12 @@ class ActDetailForm extends Component {
     })
   }
 
+  onUploadingStatusChanged(isUploading) {
+    this.setState({
+      documentsUploading: isUploading
+    })
+  }
+
   handleSubmit = e => {
     e.preventDefault()
     this.props.form.validateFields((err, values) => {
@@ -610,7 +616,8 @@ class ActDetailForm extends Component {
                   })(<FileUpload maxNumberOfFiles={5}
                     allowedFileTypes={['.pdf']}
                     files={this.props.act.documents}
-                    onFilesChanged={this.onDocumentsChanged.bind(this)} />)}
+                    onFilesChanged={this.onDocumentsChanged.bind(this)}
+                    onUploadingStatusChanged={this.onUploadingStatusChanged.bind(this)} />)}
                 </Form.Item>
               </MediumInputContainer>
             </InputContainer>
@@ -655,7 +662,7 @@ class ActDetailForm extends Component {
                 name='save'
                 // htmlType='submit'
                 onClick={this.handleSubmit}
-                disabled={hasErrors(getFieldsError())}
+                disabled={hasErrors(getFieldsError()) || this.state.documentsUploading}
                 style={{ marginLeft: 8 }}
               >
                 <FormattedMessage
@@ -670,7 +677,7 @@ class ActDetailForm extends Component {
                 type='primary'
                 // htmlType='submit'
                 onClick={this.handleSubmit}
-                disabled={hasErrors(getFieldsError())}
+                disabled={hasErrors(getFieldsError()) || this.state.documentsUploading}
                 style={{ marginLeft: 8 }}
               >
                 <FormattedMessage
