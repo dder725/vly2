@@ -23,6 +23,16 @@ import {
   ItemImage
 } from '../VTheme/ItemList'
 import { Role } from '../../server/services/authorize/role'
+import styled from 'styled-components'
+
+const DocumentLink = styled.a`
+  &::before
+  {
+    content: '🗎';
+    display: inline-block;
+    margin-right: 4px;
+  }
+`
 
 export function ActDetail ({ act, me }) {
   const img = act.imgUrl || '/static/missingimage.svg'
@@ -108,7 +118,7 @@ export function ActDetail ({ act, me }) {
               <ul>
                 {act.documents.map(document => (
                   <li key={document.location}>
-                    <a href={document.location}>{document.filename}</a>
+                    <DocumentLink href={document.location}>{document.filename}</DocumentLink>
                   </li>
                 ))}
               </ul>
